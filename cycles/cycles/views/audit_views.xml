@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="action_audit_scanner" model="ir.actions.client">
+            <field name="name">Auditoría</field>
+            <field name="tag">cycles_audit_scanner</field>
+        </record>
+
+        <menuitem
+      id="menu_audit_scanner"
+      name="Auditoría"
+      parent="menu_cycles_operations"
+      action="action_audit_scanner"
+      sequence="10"
+      groups="cycles.group_cycles_user"
+    />
+    </data>
+</odoo>

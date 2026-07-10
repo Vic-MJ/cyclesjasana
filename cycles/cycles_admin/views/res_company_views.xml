@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="view_cycles_admin_company_form" model="ir.ui.view">
+        <field name="name">res.company.cycles.admin.form</field>
+        <field name="model">res.company</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Empresa (Cycles Admin)">
+                <sheet>
+                    <field name="logo" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="Almacenes" name="almacenes">
+                            <field name="cycles_warehouse_ids">
+                                <list editable="bottom">
+                                    <field name="name" string="Nombre del Almacén"/>
+                                    <field name="code" string="Código Corto"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Usuarios Asignados" name="usuarios">
+                            <field name="user_ids" widget="many2many">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="login"/>
+                                </list>
+                                <form string="Usuario">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="name" required="1"/>
+                                                <field name="login" required="1" string="Usuario / Email"/>
+                                                <label for="password" string="Contraseña"/>
+                                                <div class="o_row">
+                                                    <field name="password" password="True" class="oe_inline"/>
+                                                    <button name="action_generate_password" type="object" string="Generar" class="btn btn-secondary oe_inline"/>
+                                                </div>
+                                                <field name="generated_password" widget="CopyClipboardChar" invisible="not generated_password"/>
+                                                <field name="cycles_admin_role" widget="radio" string="Permisos en Cycles"/>
+                                                <field name="role" widget="radio" string="Función (Odoo General)"/>
+                                            </group>
+                                            <group>
+                                                <field name="company_id" string="Empresa Principal" required="1"/>
+                                                <field name="company_ids" widget="many2many_tags" string="Empresas Permitidas" required="1"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    </data>
+</odoo>

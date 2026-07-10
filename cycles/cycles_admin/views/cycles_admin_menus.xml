@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+    <!-- Acciones de Ventana -->
+
+    <!-- Acción para Empresas -->
+    <record id="accion_cycles_admin_empresas" model="ir.actions.act_window">
+        <field name="name">Empresas</field>
+        <field name="res_model">res.company</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="accion_cycles_admin_empresas_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="act_window_id" ref="cycles_admin.accion_cycles_admin_empresas"/>
+    </record>
+
+    <record id="accion_cycles_admin_empresas_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="cycles_admin.view_cycles_admin_company_form"/>
+        <field name="act_window_id" ref="cycles_admin.accion_cycles_admin_empresas"/>
+    </record>
+
+    <!-- Acción para Almacenes -->
+    <record id="accion_cycles_admin_almacenes" model="ir.actions.act_window">
+        <field name="name">Almacenes</field>
+        <field name="res_model">stock.warehouse</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Acción para Usuarios -->
+    <record id="accion_cycles_admin_usuarios" model="ir.actions.act_window">
+        <field name="name">Usuarios</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Acción para Desglose de Prendas -->
+    <record id="accion_cycles_admin_prendas" model="ir.actions.act_window">
+        <field name="name">Desglose de Prendas</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_garment', '=', True)]</field>
+        <field name="context">{'search_default_group_by_company': 1, 'search_default_group_by_location': 1, 'search_default_group_by_garment_type': 1}</field>
+    </record>
+
+    <!-- Menús -->
+
+    <!-- Menú Principal (Solo para Administradores del Sistema) -->
+    <menuitem id="menu_cycles_admin_raiz" 
+              name="Cycles Admin" 
+              sequence="40" 
+              web_icon="cycles,static/description/icon.png"
+              groups="base.group_system"/>
+
+    <!-- Submenú de Configuración -->
+    <menuitem id="menu_cycles_admin_configuracion" 
+              name="Configuración" 
+              parent="menu_cycles_admin_raiz" 
+              sequence="10"/>
+
+    <!-- Elementos del Submenú Configuración -->
+    <menuitem id="menu_admin_empresas" 
+              name="Empresas" 
+              parent="menu_cycles_admin_configuracion" 
+              action="accion_cycles_admin_empresas" 
+              sequence="10"/>
+
+    <menuitem id="menu_admin_almacenes" 
+              name="Almacenes" 
+              parent="menu_cycles_admin_configuracion" 
+              action="accion_cycles_admin_almacenes" 
+              sequence="20"/>
+
+    <menuitem id="menu_admin_usuarios" 
+              name="Usuarios" 
+              parent="menu_cycles_admin_configuracion" 
+              action="accion_cycles_admin_usuarios" 
+              sequence="30"/>
+
+    <!-- Submenú de Reportes/Desglose -->
+    <menuitem id="menu_cycles_admin_reportes" 
+              name="Reportes y Desglose" 
+              parent="menu_cycles_admin_raiz" 
+              sequence="20"/>
+
+    <menuitem id="menu_admin_desglose_prendas" 
+              name="Desglose de Prendas" 
+              parent="menu_cycles_admin_reportes" 
+              action="accion_cycles_admin_prendas" 
+              sequence="10"/>
+    </data>
+</odoo>

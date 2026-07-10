@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_import_jasana_wizard_form" model="ir.ui.view">
+        <field name="name">cycles.import.jasana.wizard.form</field>
+        <field name="model">cycles.import.jasana.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar desde Jasana">
+                <sheet>
+                    <group>
+                        <field name="company_id" invisible="1"/>
+                        <field name="name" placeholder="Ejemplo: WH/OUT/00001" />
+                        <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <footer>
+                        <button name="action_import_picking" string="Importar y Generar Entrada" type="object" class="btn-primary" data-hotkey="q"/>
+                        <button string="Cancelar" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_import_jasana_wizard" model="ir.actions.act_window">
+        <field name="name">Importar OUT de Jasana</field>
+        <field name="res_model">cycles.import.jasana.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_cycles_admin_import_jasana"
+              name="Importar de Jasana"
+              parent="menu_cycles_admin_raiz"
+              action="action_import_jasana_wizard"
+              sequence="50"/>
+</odoo>

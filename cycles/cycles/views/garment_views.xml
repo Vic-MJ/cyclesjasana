@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Extend stock.lot form with garment fields -->
+        <record id="view_production_lot_form_inherit_cycles" model="ir.ui.view">
+            <field name="name">stock.lot.form.inherit.cycles</field>
+            <field name="model">stock.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_form" />
+            <field name="arch" type="xml">
+                <!-- Add garment stat buttons -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button
+            name="action_view_movements"
+            type="object"
+            class="oe_stat_button"
+            icon="fa-exchange"
+            invisible="not is_garment"
+          >
+                        <field name="movement_count" widget="statinfo" string="Movimientos" />
+                    </button>
+                </xpath>
+
+                <!-- Add garment info group after main_group -->
+                <group name="main_group" position="after">
+                    <group string="Información de la Prenda" name="garment_group" invisible="not is_garment">
+                        <group>
+                            <field name="garment_type_id" readonly="1" />
+                            <field name="employee_id" />
+                            <field name="assignment_date" />
+                        </group>
+                        <group>
+                            <field name="wash_cycle_count" />
+                            <field name="max_wash_cycles" readonly="1" />
+                            <field
+                name="lifecycle_state"
+                decoration-success="lifecycle_state == 'ok'"
+                decoration-warning="lifecycle_state == 'warning'"
+                decoration-danger="lifecycle_state == 'replace'"
+                widget="badge"
+              />
+                            <field name="last_wash_date" />
+                            <field name="last_movement_date" />
+                        </group>
+                    </group>
+                </group>
+                <field name="company_id" position="after">
+                    <field name="is_garment" invisible="1" />
+                </field>
+            </field>
+        </record>
+
+        <!-- Garment-specific list view -->
+        <record id="view_garment_list" model="ir.ui.view">
+            <field name="name">cycles.garment.list</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <list
+          string="Prendas"
+          decoration-success="lifecycle_state == 'ok'"
+          decoration-warning="lifecycle_state == 'warning'"
+          decoration-danger="lifecycle_state == 'replace'"
+        >
+                    <field name="name" string="EPC / Serial" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="location_id" string="Ubicación Actual" />
+                    <field name="wash_cycle_count" />
+                    <field name="max_wash_cycles" />
+                    <field
+            name="lifecycle_state"
+            widget="badge"
+            decoration-success="lifecycle_state == 'ok'"
+            decoration-warning="lifecycle_state == 'warning'"
+            decoration-danger="lifecycle_state == 'replace'"
+          />
+                    <field name="last_wash_date" />
+                    <field name="last_movement_date" />
+                    <field name="assignment_date" optional="hide" />
+                </list>
+            </field>
+        </record>
+
+        <!-- Garment search view -->
+        <record id="view_garment_search" model="ir.ui.view">
+            <field name="name">cycles.garment.search</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <search string="Prendas">
+                    <field name="name" string="EPC / Serial" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="location_id" />
+                    <separator />
+                    <filter string="OK" name="filter_ok" domain="[('lifecycle_state', '=', 'ok')]" />
+                    <filter
+            string="Próximo a Reemplazo"
+            name="filter_warning"
+            domain="[('lifecycle_state', '=', 'warning')]"
+          />
+                    <filter string="Reemplazar" name="filter_replace" domain="[('lifecycle_state', '=', 'replace')]" />
+                    <filter string="Retirada" name="filter_retired" domain="[('lifecycle_state', '=', 'retired')]" />
+                    <separator />
+                    <filter
+            string="En Ropería"
+            name="filter_roperia"
+            domain="[('location_id.barcode', '=', 'ROPERIA')]"
+          />
+                    <filter string="En Uso" name="filter_en_uso" domain="[('location_id.barcode', '=', 'ENUSO')]" />
+                    <filter
+            string="En Lavandería"
+            name="filter_lavanderia"
+            domain="[('location_id.barcode', '=', 'LAVANDERIA')]"
+          />
+                    <separator />
+                    <group>
+                        <filter
+              string="Tipo de Prenda"
+              name="group_type"
+              domain="[]"
+              context="{'group_by': 'garment_type_id'}"
+            />
+                        <filter
+              string="Empleado"
+              name="group_employee"
+              domain="[]"
+              context="{'group_by': 'employee_id'}"
+            />
+                        <filter
+              string="Ubicación"
+              name="group_location"
+              domain="[]"
+              context="{'group_by': 'location_id'}"
+            />
+                        <filter
+              string="Estado del Ciclo de Vida"
+              name="group_lifecycle"
+              domain="[]"
+              context="{'group_by': 'lifecycle_state'}"
+            />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Garment pivot view -->
+        <record id="view_garment_pivot" model="ir.ui.view">
+            <field name="name">cycles.garment.pivot</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <pivot string="Inventario de Prendas">
+                    <field name="location_id" type="row" />
+                    <field name="garment_type_id" type="col" />
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Garment graph view -->
+        <record id="view_garment_graph" model="ir.ui.view">
+            <field name="name">cycles.garment.graph</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <graph string="Inventario de Prendas" type="bar">
+                    <field name="location_id" />
+                    <field name="garment_type_id" />
+                </graph>
+            </field>
+        </record>
+
+        <!-- Action: All Garments -->
+        <record id="action_garments" model="ir.actions.act_window">
+            <field name="name">Prendas</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form,pivot,graph</field>
+            <field name="domain">[('is_garment', '=', True)]</field>
+            <field name="context">{'search_default_group_type': 1}</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+                (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_garment_pivot')}),
+                (0, 0, {'view_mode': 'graph', 'view_id': ref('view_garment_graph')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No se encontraron prendas
+                </p>
+                <p>
+                    Las prendas se crean automáticamente al escanearlas con RFID
+                    durante una operación de "Entrada a Ropería".
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

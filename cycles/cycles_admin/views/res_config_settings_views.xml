@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.cycles_admin</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Cycles Admin" string="Cycles Admin" name="cycles_admin">
+                    <block title="Conexión Global con Jasana" name="jasana_connection_setting">
+                        <setting string="URL de Jasana" help="Ej. https://mi-jasana.odoo.com">
+                            <field name="jasana_url" class="w-100"/>
+                        </setting>
+                        <setting string="Base de Datos Jasana">
+                            <field name="jasana_db" class="w-100"/>
+                        </setting>
+                        <setting string="Usuario Jasana (Email)">
+                            <field name="jasana_user" class="w-100"/>
+                        </setting>
+                        <setting string="API Key Jasana">
+                            <field name="jasana_api_key" password="True" class="w-100"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_cycles_admin_config_settings" model="ir.actions.act_window">
+        <field name="name">Ajustes Generales</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_id" ref="base.res_config_settings_view_form"/>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module' : 'cycles_admin', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_cycles_admin_settings"
+        name="Ajustes Generales"
+        parent="menu_cycles_admin_configuracion"
+        action="action_cycles_admin_config_settings"
+        sequence="5"/>
+</odoo>

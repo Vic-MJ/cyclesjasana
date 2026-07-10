@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="cycles.RfidScanner">
+    <div class="o_cycles_rfid_scanner o_action d-flex flex-column h-100">
+
+        <!-- ── Header ─────────────────────────────────────────────────────── -->
+        <div class="scanner-header d-flex align-items-center px-3 py-2">
+            <t t-if="!state.selectedOp or state.step === 'config'">
+                <i class="fa fa-wifi fa-lg me-3 text-primary flex-shrink-0" />
+                <h5 class="mb-0 header-title text-truncate">Escáner RFID</h5>
+            </t>
+            <t t-else="">
+                <i class="fa fa-wifi fa-lg me-2 text-primary flex-shrink-0" />
+                <div class="badge badge-op d-flex align-items-center text-white flex-grow-1 text-start overflow-hidden px-3 py-2" style="font-size: 0.9rem; border-radius: 12px;">
+                    <img t-att-src="'/cycles/static/src/img/' + state.selectedOp.image + '?v=2'" style="width: 18px; height: 18px; filter: brightness(0) invert(1);" class="me-2 flex-shrink-0" alt="Icon" />
+                    <span class="text-truncate fw-bold"><t t-esc="state.selectedOp.name" /></span>
+                </div>
+            </t>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto p-4">
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 1 – Configuración
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'config'">
+                <div class="row justify-content-center animate-fade-in-up">
+                    <div class="col-lg-8">
+
+                        <div class="glass-card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <t t-if="!state.selectedOp">1 · Selecciona la operación</t>
+                                    <t t-else="">Configurar: <t t-esc="state.selectedOp.name" /></t>
+                                </h5>
+                                <t t-if="state.selectedOp">
+                                    <button class="btn btn-sm btn-outline-secondary" t-on-click="reset">
+                                        <i class="fa fa-arrow-left me-1"/> Cambiar Operación
+                                    </button>
+                                </t>
+                            </div>
+                            <div class="card-body p-4">
+
+                                <!-- Operation buttons -->
+                                <t t-if="!state.selectedOp">
+                                    <div class="row g-4 mb-4">
+                                        <t t-foreach="state.operations" t-as="op" t-key="op.code">
+                                            <div class="col-md-4 col-sm-6">
+                                                <button
+                            class="op-btn w-100 py-3 px-2 d-flex flex-column align-items-center gap-2"
+                            t-att-class="state.selectedOp and state.selectedOp.code === op.code ? 'active-op' : ''"
+                            t-on-click="() => this.selectOperation(op)"
+                          >
+                                                    <img t-att-src="'/cycles/static/src/img/' + op.image + '?v=2'" style="width: 48px; height: 48px;" alt="Icon" />
+                                                    <span class="fw-bold small text-center text-dark"><t
+                                t-esc="op.name"
+                              /></span>
+                                                </button>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+
+                                <!-- Reception (only for 'entrada') -->
+                                <t t-if="state.selectedOp and state.selectedOp.needs_garment_type">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Recepción pendiente</label>
+                                        <select
+                          class="form-select form-select-lg shadow-sm"
+                          t-model="state.selectedPickingId"
+                          t-on-change="onReceptionChange"
+                        >
+                                            <option value="">— Seleccione una opción —</option>
+                                            <option value="manual">➜ Entrada manual (sin orden de compra)</option>
+                                            <t t-foreach="state.pendingReceptions" t-as="rcp" t-key="rcp.picking_id">
+                                                <option t-att-value="rcp.picking_id">
+                                                    <t t-esc="rcp.picking_name" /> · <t
+                                t-esc="rcp.origin"
+                              /> (<t t-esc="rcp.partner_name" />)
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                </t>
+
+                                <!-- Employee (only for 'entrega') -->
+                                <t t-if="state.selectedOp and state.selectedOp.needs_employee">
+                                    <div class="mb-3 position-relative">
+                                        <label class="form-label fw-semibold">Empleado <span
+                          class="text-danger"
+                        >*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-search" /></span>
+                                            <input
+                          type="text"
+                          class="form-control form-control-lg"
+                          placeholder="Buscar por nombre o PIN…"
+                          autocomplete="off"
+                          t-att-value="state.employeeQuery"
+                          t-on-input="onEmployeeQueryInput"
+                          t-on-focus="onEmployeeFocus"
+                          t-on-blur="onEmployeeBlur"
+                        />
+                                            <t t-if="state.selectedEmployeeId or state.employeeQuery">
+                                                <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            t-on-click="clearEmployee"
+                            title="Limpiar"
+                          >
+                                                    <i class="fa fa-times" />
+                                                </button>
+                                            </t>
+                                        </div>
+                                        <t t-if="state.employeeListOpen and !state.selectedEmployeeId">
+                                            <ul
+                          class="list-group position-absolute w-100 shadow-lg"
+                          style="z-index:1050;max-height:60vh;overflow-y:auto;"
+                        >
+                                                <t t-if="filteredEmployees.length === 0">
+                                                    <li class="list-group-item text-muted fs-5 py-3">
+                                                        Sin coincidencias
+                                                    </li>
+                                                </t>
+                                                <t t-foreach="filteredEmployees" t-as="emp" t-key="emp.id">
+                                                    <li
+                              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-4"
+                              style="cursor:pointer;"
+                              t-on-mousedown="() => this.selectEmployee(emp)"
+                            >
+                                                        <span class="fw-bold fs-4"><t t-esc="emp.name" /></span>
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                    </div>
+                                </t>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </t>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 2 – Escaneando (OPTIMIZADO PARA HANDHELD)
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'scanning'">
+                <div class="d-flex flex-column h-100 animate-fade-in-up">
+                    
+                    <!-- TOP: Counter & Scanner Status -->
+                    <div class="glass-card mb-2 px-3 py-2 flex-shrink-0">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <!-- Count -->
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted small fw-bold text-uppercase tracking-wider me-2">Prendas Leídas:</span>
+                                <span class="fw-bolder text-success lh-1 mb-0" style="font-family: 'Inter', sans-serif; font-size: 2rem;">
+                                    <t t-esc="state.epcs.length" />
+                                    <t t-if="currentDemand > 0">
+                                        <span class="text-muted mx-1" style="font-size: 1.25rem;">/</span>
+                                        <span class="text-muted" style="font-size: 1.5rem;"><t t-esc="currentDemand" /></span>
+                                    </t>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Dropdown (Entrada) -->
+                        <t t-if="state.selectedOp and state.selectedOp.code === 'entrada' and state.selectedPickingId">
+                            <div class="mt-2 p-1 bg-light rounded d-flex align-items-center border">
+                                <strong class="me-2 ms-2 text-primary" style="font-size: 0.85rem;">Siguiente:</strong>
+                                <select class="form-select form-select-sm border-0 shadow-none bg-transparent fw-bold py-0" t-model="state.selectedGarmentTypeId" style="font-size: 0.85rem;">
+                                    <option value="">— Elija producto —</option>
+                                    <t t-foreach="selectedReception.lines" t-as="ln" t-key="ln.product_id">
+                                        <option t-att-value="ln.product_id">
+                                            <t t-esc="ln.garment_type_name" /> (<t t-esc="ln.demand" />)
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </t>
+
+                        <!-- Hidden Textarea for RFID Input -->
+                        <textarea
+                            t-ref="scanInput"
+                            class="position-absolute opacity-0"
+                            style="width: 1px; height: 1px; top: -100px; left: -100px; z-index: -1;"
+                            inputmode="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            t-on-input="onScannerInput"
+                        />
+                    </div>
+
+                    <!-- MIDDLE: Scanned List -->
+                    <div class="glass-card flex-grow-1 d-flex flex-column mb-3 overflow-hidden">
+                        <div class="card-header d-flex justify-content-between align-items-center py-2 bg-white">
+                            <h6 class="mb-0 text-muted fw-bold"><i class="fa fa-list me-2"/>EPCs Leídos</h6>
+                            <button class="btn btn-sm btn-link text-danger text-decoration-none p-0" t-on-click="clearAll" t-att-disabled="state.epcs.length === 0">
+                                <i class="fa fa-trash me-1" />Limpiar todo
+                            </button>
+                        </div>
+                        <div class="card-body overflow-auto p-0 bg-light">
+                            <t t-if="state.epcs.length === 0">
+                                <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                    <div class="text-center py-4 opacity-50">
+                                        <i class="fa fa-barcode fa-3x mb-2 d-block" />
+                                        <span class="small fw-bold">Esperando lecturas...</span>
+                                    </div>
+                                </div>
+                            </t>
+                            <ul class="list-group list-group-flush">
+                                <t t-foreach="state.epcs" t-as="epc" t-key="epc">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-white">
+                                        <div class="d-flex align-items-center text-start flex-grow-1">
+                                            <t t-if="state.epcDetails[epc] and state.epcDetails[epc].product_id">
+                                                <img 
+                                                    t-att-src="'/web/image?model=product.product&amp;id=' + state.epcDetails[epc].product_id + '&amp;field=image_128'"
+                                                    class="rounded me-3 border flex-shrink-0"
+                                                    style="width: 48px; height: 48px; object-fit: cover; cursor: pointer;"
+                                                    t-on-click="() => this.openImage(state.epcDetails[epc].product_id)"
+                                                    alt="Prenda"
+                                                />
+                                            </t>
+                                            <div class="d-flex flex-column">
+                                                <t t-if="state.epcDetails[epc]">
+                                                    <div class="fw-bold text-dark lh-sm"><t t-esc="state.epcDetails[epc].product_name" /></div>
+                                                    <t t-if="state.epcDetails[epc].employee_name">
+                                                        <div class="small text-primary mt-1" style="font-size: 0.85em;">
+                                                            <i class="fa fa-user me-1"/> <t t-esc="state.epcDetails[epc].employee_name" />
+                                                        </div>
+                                                    </t>
+                                                    <code class="small text-muted" style="font-size: 0.75rem;"><t t-esc="epc" /></code>
+                                                </t>
+                                                <t t-else="">
+                                                    <code class="small text-break me-2"><t t-esc="epc" /></code>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <button
+                                            class="btn btn-sm text-danger p-2 flex-shrink-0 border-0 bg-transparent"
+                                            t-on-click="() => this.removeEpc(epc)"
+                                        >
+                                            <i class="fa fa-times fa-lg" />
+                                        </button>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM: Action Buttons -->
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <button class="btn btn-light fw-bold px-3 py-3 shadow-sm border" style="border-radius: 12px; flex: 0 0 auto;" t-on-click="reset">
+                            <i class="fa fa-arrow-left" />
+                        </button>
+                        
+                        <t t-if="state.selectedOp and state.selectedOp.code === 'entrada'">
+                            <t t-if="!isLastItemInOrder">
+                                <button
+                                    class="btn btn-primary fw-bold flex-grow-1 shadow-sm px-2"
+                                    style="border-radius: 12px; font-size: 0.95rem;"
+                                    t-att-disabled="state.epcs.length === 0 or state.isProcessing"
+                                    t-on-click="saveAndNext"
+                                >
+                                    <i class="fa fa-save me-1 d-block mb-1" />Guardar
+                                </button>
+                            </t>
+                            <button
+                                class="btn btn-success fw-bold flex-grow-1 shadow-sm px-2"
+                                style="border-radius: 12px; font-size: 0.95rem;"
+                                t-att-disabled="state.epcs.length === 0 or state.isProcessing"
+                                t-on-click="confirmScan"
+                            >
+                                <i class="fa fa-check me-1 d-block mb-1" />Finalizar
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <button
+                                class="btn-action-primary flex-grow-1 shadow-sm py-3"
+                                t-att-disabled="state.epcs.length === 0 or state.isProcessing"
+                                t-on-click="confirmScan"
+                            >
+                                <t t-if="state.isProcessing">
+                                    <i class="fa fa-spinner fa-spin me-2" />Procesando…
+                                </t>
+                                <t t-else="">
+                                    <i class="fa fa-check-circle me-2" />Confirmar
+                                </t>
+                            </button>
+                        </t>
+                    </div>
+
+                </div>
+            </t>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 3 – Resumen / Loading
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'result'">
+                <div class="row justify-content-center animate-fade-in-up">
+                    <div class="col-lg-8 text-center">
+                        <div class="glass-card text-center p-2">
+                            <div class="card-body py-5">
+
+                                <i class="fa fa-check-circle fa-5x text-success mb-4 shadow-sm rounded-circle" style="background: white;" />
+                                <h2 class="fw-bolder header-title mb-2">¡Operación Exitosa!</h2>
+                                <p class="text-muted fw-semibold">
+                                    <t t-esc="state.result and state.result.picking_name" />
+                                </p>
+
+                                <div class="row g-4 my-4">
+                                    <div class="col-6">
+                                        <div class="result-stat-box bg-success-gradient">
+                                            <div class="display-4 fw-bold mb-1">
+                                                <t t-esc="state.result and state.result.processed_count" />
+                                            </div>
+                                            <span class="text-uppercase tracking-wider small fw-bold">Procesadas</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div
+                        class="result-stat-box"
+                        t-att-class="state.result and state.result.error_count ? 'bg-warning-gradient' : 'bg-secondary-gradient'"
+                      >
+                                            <div class="display-4 fw-bold mb-1">
+                                                <t t-esc="state.result and state.result.error_count" />
+                                            </div>
+                                            <span class="text-uppercase tracking-wider small fw-bold">Errores</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Error list -->
+                                <t t-if="state.result and state.result.errors and state.result.errors.length">
+                                    <div class="alert alert-danger text-start mt-4 border-0 shadow-sm" style="border-radius: 12px;">
+                                        <strong class="d-block mb-2"><i class="fa fa-exclamation-triangle me-2" />EPCs no encontrados:</strong>
+                                        <ul class="mb-0 small" style="font-family: monospace;">
+                                            <t t-foreach="state.result.errors" t-as="err" t-key="err">
+                                                <li class="mb-1"><t t-esc="err" /></li>
+                                            </t>
+                                        </ul>
+                                        <t t-if="state.result.error_count > state.result.errors.length">
+                                            <div class="text-muted mt-2 text-center fw-bold">
+                                                ...y <t
+                            t-esc="state.result.error_count - state.result.errors.length"
+                          /> más
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+
+                                <div class="d-flex gap-3 justify-content-center mt-5">
+                                    <t t-if="state.result and state.result.picking_id">
+                                        <button class="btn btn-light fw-bold px-4 py-3" style="border-radius: 12px; border: 1px solid rgba(0,0,0,0.1);" t-on-click="openPicking">
+                                            <i class="fa fa-external-link me-2 text-primary" />Ver documento
+                                        </button>
+                                    </t>
+                                    <button class="btn-action-primary px-5 py-3" t-on-click="reset">
+                                        <i class="fa fa-refresh me-2" />Siguiente operación
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 MODAL BACKORDER
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.showBackorderModal">
+                <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5); z-index: 1060; backdrop-filter: blur(4px);">
+                    <div class="glass-card shadow-lg" style="width: 100%; max-width: 500px; animation: scaleIn 0.3s ease-out;">
+                        <div class="card-header bg-warning text-dark border-0">
+                            <h4 class="mb-0 fw-bold"><i class="fa fa-exclamation-triangle me-2" />Faltaron Prendas</h4>
+                        </div>
+                        <div class="card-body p-4 text-center">
+                            <p class="fs-5 mb-4">No se leyeron todas las prendas que pedía esta Orden de Compra.</p>
+                            <p class="text-muted mb-4">¿Deseas generar una orden parcial (backorder) con las prendas faltantes para recibirlas después, o prefieres cancelar lo que faltó y cerrar la orden por completo?</p>
+                            
+                            <div class="d-flex flex-column gap-3">
+                                <button class="btn btn-warning btn-lg fw-bold w-100" t-on-click="() => this.submitBackorderDecision(true)">
+                                    <i class="fa fa-copy me-2" />Crear Orden Parcial (Backorder)
+                                </button>
+                                <button class="btn btn-outline-danger fw-bold w-100" t-on-click="() => this.submitBackorderDecision(false)">
+                                    <i class="fa fa-times me-2" />Cancelar faltantes (Cerrar por completo)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+        </div><!-- /p-4 -->
+
+        <!-- ══════════════════════════════════════════════════════════════
+             MODAL IMAGEN AMPLIADA
+        ══════════════════════════════════════════════════════════════ -->
+        <t t-if="state.enlargedImage">
+            <div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.85); z-index: 1070; backdrop-filter: blur(5px);" t-on-click="closeImage">
+                <div class="position-relative p-2" style="max-width: 90vw; max-height: 90vh;" t-on-click.stop="">
+                    <button class="btn btn-dark position-absolute top-0 end-0 m-2 rounded-circle shadow" style="z-index: 1071;" t-on-click="closeImage">
+                        <i class="fa fa-times fa-lg" />
+                    </button>
+                    <img t-att-src="state.enlargedImage" class="img-fluid rounded shadow-lg" style="max-height: 85vh; object-fit: contain;" />
+                </div>
+            </div>
+        </t>
+    </div>
+</t>
+
+</templates>

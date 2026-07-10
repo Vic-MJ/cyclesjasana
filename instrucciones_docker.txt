@@ -1,0 +1,6 @@
+Para volver a crear y encender los contenedores:
+
+docker-compose up -d
+
+docker-compose up -d --build
+

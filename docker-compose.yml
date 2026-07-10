@@ -1,0 +1,45 @@
+version: "3.8"
+name: "odoo_cycles"
+
+services:
+  db:
+    image: postgres:16
+    container_name: cycles_db
+    environment:
+      POSTGRES_DB: cycles_local
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    ports:
+      - "5432:5432"
+    volumes:
+      - cycles_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  odoo:
+    image: odoo:19.0
+    container_name: cycles_odoo
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      PORT: 5432
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      # Addon del modulo cycles
+      - ./cycles:/mnt/extra-addons
+      # Datos de Odoo (filestore)
+      - cycles_odoo_data:/var/lib/odoo
+      # Configuracion
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+    restart: unless-stopped
+    command: >
+      odoo --db_host=db --db_user=odoo --db_password=odoo --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons --dev=all -d cycles_local
+
+volumes:
+  cycles_pgdata:
+    name: cycles_pgdata
+  cycles_odoo_data:
+    name: cycles_odoo_data

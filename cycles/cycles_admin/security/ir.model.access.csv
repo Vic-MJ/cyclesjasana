@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cycles_import_jasana_wizard,cycles.import.jasana.wizard,model_cycles_import_jasana_wizard,cycles.group_cycles_manager,1,1,1,1

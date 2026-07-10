@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Garment Type List -->
+        <record id="view_garment_type_list" model="ir.ui.view">
+            <field name="name">cycles.garment.type.list</field>
+            <field name="model">cycles.garment.type</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="code" />
+                    <field name="name" />
+                    <field name="max_wash_cycles" />
+                    <field name="warning_cycles_threshold" />
+                    <field name="min_inventory" />
+                    <field name="inactivity_days" />
+                    <field name="garment_count" />
+                </list>
+            </field>
+        </record>
+
+        <!-- Garment Type Form -->
+        <record id="view_garment_type_form" model="ir.ui.view">
+            <field name="name">cycles.garment.type.form</field>
+            <field name="model">cycles.garment.type</field>
+            <field name="arch" type="xml">
+                <form string="Tipo de Prenda">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_garments" type="object" class="oe_stat_button" icon="fa-tags">
+                                <field name="garment_count" widget="statinfo" string="Prendas" />
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active" />
+                        <div class="oe_title">
+                            <label for="name" />
+                            <h1>
+                                <field name="name" placeholder="Nombre del tipo de prenda..." />
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="code" />
+                                <field name="product_tmpl_id" readonly="1" />
+                                <field name="company_id" groups="base.group_multi_company" />
+                            </group>
+                            <group>
+                                <field name="max_wash_cycles" />
+                                <field name="warning_cycles_threshold" />
+                                <field name="min_inventory" />
+                                <field name="inactivity_days" />
+                            </group>
+                        </group>
+                        <field name="active" invisible="1" />
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Garment Type Search -->
+        <record id="view_garment_type_search" model="ir.ui.view">
+            <field name="name">cycles.garment.type.search</field>
+            <field name="model">cycles.garment.type</field>
+            <field name="arch" type="xml">
+                <search string="Tipos de Prenda">
+                    <field name="name" />
+                    <field name="code" />
+                    <filter string="Archivado" name="inactive" domain="[('active', '=', False)]" />
+                </search>
+            </field>
+        </record>
+
+        <!-- Garment Type Action -->
+        <record id="action_garment_type" model="ir.actions.act_window">
+            <field name="name">Tipos de Prenda</field>
+            <field name="res_model">cycles.garment.type</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Crea tu primer tipo de prenda
+                </p>
+                <p>
+                    Define los tipos de prenda como Filipina, Pantalón, Bata, etc.
+                    con sus ciclos máximos de lavado y umbrales de alerta.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

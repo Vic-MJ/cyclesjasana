@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Add garment employee field to picking form -->
+        <record id="view_picking_form_inherit_cycles" model="ir.ui.view">
+            <field name="name">stock.picking.form.inherit.cycles</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form" />
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="garment_employee_id" readonly="state in ['cancel', 'done']" />
+                    <field name="jasana_external_ref" readonly="1"
+                           invisible="not jasana_external_ref" />
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,18 @@
+/** @type {import('prettier').Config} */
+// The ugly name of the file was to reduce the changes in the repos
+// since that it was already considered in our .gitignore
+// it is not related with eslint but prettier
+
+const config = {
+  // https://github.com/prettier/prettier/issues/15388#issuecomment-1717746872
+  plugins: [require.resolve("@prettier/plugin-xml")],
+  bracketSpacing: false,
+  printWidth: 119,
+  proseWrap: "always",
+  semi: true,
+  trailingComma: "es5",
+  xmlWhitespaceSensitivity: "strict",
+  xmlSelfClosingSpace: true,
+};
+
+module.exports = config;

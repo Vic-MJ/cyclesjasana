@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data noupdate="1">
+        <!-- Product Category -->
+        <record id="product_category_uniformes" model="product.category">
+            <field name="name">Uniformes</field>
+        </record>
+
+        <!--
+            Las ubicaciones (Ropería, Lavandería, En Uso) y los tipos de
+            operación (entrada, traslado, entrega) ya NO se definen aquí como
+            singletons globales: se provisionan por almacén/compañía desde
+            stock.warehouse._cycles_provision() (creación de almacén) y desde
+            el post_init_hook para los almacenes existentes. Así cada compañía
+            opera con su propia infraestructura de uniformes (multicompañía).
+        -->
+    </data>
+</odoo>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Menú Raíz -->
+        <menuitem id="menu_cycles_root" name="Cycles" web_icon="cycles,static/description/icon.png" sequence="45" />
+
+        <!-- Menú Operaciones -->
+        <menuitem id="menu_cycles_operations" name="Operaciones" parent="menu_cycles_root" sequence="10" />
+
+        <menuitem
+      id="menu_garments"
+      name="Prendas"
+      parent="menu_cycles_operations"
+      action="action_garments"
+      sequence="10"
+    />
+
+        <menuitem
+      id="menu_movements"
+      name="Movimientos"
+      parent="menu_cycles_operations"
+      action="action_movements"
+      sequence="20"
+    />
+
+        <menuitem
+      id="menu_epc_replace"
+      name="Reemplazar EPC Dañado"
+      parent="menu_cycles_operations"
+      action="action_epc_replace_wizard"
+      sequence="30"
+    />
+
+        <!-- Menú Reportes -->
+        <menuitem id="menu_cycles_reports" name="Reportes" parent="menu_cycles_root" sequence="20" />
+
+        <menuitem
+      id="menu_report_inventory"
+      name="Inventario por Estado"
+      parent="menu_cycles_reports"
+      action="action_report_inventory_estado"
+      sequence="10"
+    />
+
+        <menuitem
+      id="menu_report_cycles"
+      name="Ciclos por Prenda"
+      parent="menu_cycles_reports"
+      action="action_report_cycles_prenda"
+      sequence="20"
+    />
+
+        <menuitem
+      id="menu_report_employee"
+      name="Prendas por Empleado"
+      parent="menu_cycles_reports"
+      action="action_report_prendas_empleado"
+      sequence="30"
+    />
+
+        <menuitem
+      id="menu_report_alerts"
+      name="Alertas y Excepciones"
+      parent="menu_cycles_reports"
+      action="action_alerts_all"
+      sequence="40"
+    />
+
+        <!-- Submenú Alertas -->
+        <menuitem id="menu_cycles_alerts" name="Alertas" parent="menu_cycles_reports" sequence="50" />
+
+        <menuitem
+      id="menu_alert_excess"
+      name="Exceso de Ciclos"
+      parent="menu_cycles_alerts"
+      action="action_alert_excess_cycles"
+      sequence="10"
+    />
+
+        <menuitem
+      id="menu_alert_inactivity"
+      name="Prendas Inactivas"
+      parent="menu_cycles_alerts"
+      action="action_alert_inactivity"
+      sequence="20"
+    />
+
+        <!-- Menú Configuración -->
+        <menuitem
+      id="menu_cycles_config"
+      name="Configuración"
+      parent="menu_cycles_root"
+      groups="group_cycles_manager"
+      sequence="30"
+    />
+
+        <menuitem
+      id="menu_garment_types"
+      name="Tipos de Prenda"
+      parent="menu_cycles_config"
+      action="action_garment_type"
+      sequence="10"
+    />
+    </data>
+</odoo>

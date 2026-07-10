@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Movement List -->
+        <record id="view_movement_list" model="ir.ui.view">
+            <field name="name">cycles.movement.list</field>
+            <field name="model">cycles.movement</field>
+            <field name="arch" type="xml">
+                <list string="Movimientos de Prendas" create="0" edit="0">
+                    <field name="date" />
+                    <field name="lot_id" string="Prenda (EPC)" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="location_from_id" />
+                    <field name="location_to_id" />
+                    <field name="is_wash_cycle" widget="boolean" />
+                    <field name="picking_id" optional="show" />
+                    <field name="user_id" optional="hide" />
+                </list>
+            </field>
+        </record>
+
+        <!-- Movement Form -->
+        <record id="view_movement_form" model="ir.ui.view">
+            <field name="name">cycles.movement.form</field>
+            <field name="model">cycles.movement</field>
+            <field name="arch" type="xml">
+                <form string="Movimiento de Prenda" create="0" edit="0">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="lot_id" />
+                                <field name="garment_type_id" />
+                                <field name="employee_id" />
+                                <field name="date" />
+                            </group>
+                            <group>
+                                <field name="location_from_id" />
+                                <field name="location_to_id" />
+                                <field name="is_wash_cycle" />
+                                <field name="picking_id" />
+                                <field name="user_id" />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Movement Search -->
+        <record id="view_movement_search" model="ir.ui.view">
+            <field name="name">cycles.movement.search</field>
+            <field name="model">cycles.movement</field>
+            <field name="arch" type="xml">
+                <search string="Movimientos de Prendas">
+                    <field name="lot_id" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="location_from_id" />
+                    <field name="location_to_id" />
+                    <separator />
+                    <filter string="Ciclos de Lavado" name="filter_wash" domain="[('is_wash_cycle', '=', True)]" />
+                    <filter
+            string="Hoy"
+            name="filter_today"
+            domain="[('date', '&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"
+          />
+                    <filter
+            string="Esta Semana"
+            name="filter_week"
+            domain="[('date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"
+          />
+                    <separator />
+                    <group>
+                        <filter
+              string="Tipo de Prenda"
+              name="group_type"
+              domain="[]"
+              context="{'group_by': 'garment_type_id'}"
+            />
+                        <filter
+              string="Empleado"
+              name="group_employee"
+              domain="[]"
+              context="{'group_by': 'employee_id'}"
+            />
+                        <filter
+              string="Destino"
+              name="group_dest"
+              domain="[]"
+              context="{'group_by': 'location_to_id'}"
+            />
+                        <filter string="Fecha" name="group_date" domain="[]" context="{'group_by': 'date:day'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Movement Action -->
+        <record id="action_movements" model="ir.actions.act_window">
+            <field name="name">Movimientos</field>
+            <field name="res_model">cycles.movement</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Sin movimientos registrados
+                </p>
+                <p>
+                    Los movimientos se crean automáticamente cuando las prendas
+                    se transfieren entre ubicaciones.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

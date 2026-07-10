@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Client action that loads the OWL RfidScanner component -->
+        <record id="action_rfid_scanner" model="ir.actions.client">
+            <field name="name">Escáner RFID</field>
+            <field name="tag">cycles_rfid_scanner</field>
+        </record>
+
+        <!-- Menu entry under Operations -->
+        <menuitem
+      id="menu_rfid_scanner"
+      name="Escáner RFID"
+      parent="menu_cycles_operations"
+      action="action_rfid_scanner"
+      sequence="5"
+      groups="cycles.group_cycles_user"
+    />
+    </data>
+</odoo>

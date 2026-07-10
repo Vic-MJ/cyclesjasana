@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <!-- Reporte 1: Inventario Actual por Estado -->
+        <record id="action_report_inventory_estado" model="ir.actions.act_window">
+            <field name="name">Inventario por Estado</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">pivot,graph,list</field>
+            <field name="domain">[('is_garment', '=', True)]</field>
+            <field name="context">{'search_default_group_location': 1}</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_garment_pivot')}),
+                (0, 0, {'view_mode': 'graph', 'view_id': ref('view_garment_graph')}),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_list')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
+        <!-- Reporte 2: Ciclos por Prenda -->
+        <record id="view_garment_cycles_list" model="ir.ui.view">
+            <field name="name">cycles.garment.cycles.list</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <list
+          string="Ciclos de Lavado por Prenda"
+          decoration-success="lifecycle_state == 'ok'"
+          decoration-warning="lifecycle_state == 'warning'"
+          decoration-danger="lifecycle_state == 'replace'"
+          default_order="wash_cycle_count desc"
+        >
+                    <field name="name" string="EPC / Serial" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="wash_cycle_count" />
+                    <field name="max_wash_cycles" />
+                    <field name="last_wash_date" />
+                    <field
+            name="lifecycle_state"
+            widget="badge"
+            decoration-success="lifecycle_state == 'ok'"
+            decoration-warning="lifecycle_state == 'warning'"
+            decoration-danger="lifecycle_state == 'replace'"
+          />
+                </list>
+            </field>
+        </record>
+
+        <record id="action_report_cycles_prenda" model="ir.actions.act_window">
+            <field name="name">Ciclos por Prenda</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_garment', '=', True)]</field>
+            <field name="context">{'search_default_group_lifecycle': 1}</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_cycles_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
+        <!-- Reporte 3: Prendas por Empleado -->
+        <record id="view_garment_employee_list" model="ir.ui.view">
+            <field name="name">cycles.garment.employee.list</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <list
+          string="Prendas por Empleado"
+          decoration-success="lifecycle_state == 'ok'"
+          decoration-warning="lifecycle_state == 'warning'"
+          decoration-danger="lifecycle_state == 'replace'"
+        >
+                    <field name="employee_id" />
+                    <field name="garment_type_id" />
+                    <field name="name" string="EPC / Serial" />
+                    <field name="assignment_date" />
+                    <field name="location_id" string="Ubicación Actual" />
+                    <field
+            name="lifecycle_state"
+            widget="badge"
+            decoration-success="lifecycle_state == 'ok'"
+            decoration-warning="lifecycle_state == 'warning'"
+            decoration-danger="lifecycle_state == 'replace'"
+          />
+                    <field name="wash_cycle_count" />
+                </list>
+            </field>
+        </record>
+
+        <record id="action_report_prendas_empleado" model="ir.actions.act_window">
+            <field name="name">Prendas por Empleado</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_garment', '=', True)]</field>
+            <field name="context">{'search_default_group_employee': 1}</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_employee_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
+        <!-- Reporte 4: Alertas y Excepciones -->
+        <record id="view_garment_alerts_list" model="ir.ui.view">
+            <field name="name">cycles.garment.alerts.list</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <list
+          string="Alertas de Prendas"
+          decoration-danger="lifecycle_state == 'replace'"
+          decoration-warning="lifecycle_state == 'warning'"
+        >
+                    <field name="name" string="EPC / Serial" />
+                    <field name="garment_type_id" />
+                    <field name="employee_id" />
+                    <field name="location_id" string="Ubicación Actual" />
+                    <field name="wash_cycle_count" />
+                    <field name="max_wash_cycles" />
+                    <field
+            name="lifecycle_state"
+            widget="badge"
+            decoration-success="lifecycle_state == 'ok'"
+            decoration-warning="lifecycle_state == 'warning'"
+            decoration-danger="lifecycle_state == 'replace'"
+          />
+                    <field name="last_movement_date" />
+                    <field name="last_wash_date" />
+                </list>
+            </field>
+        </record>
+
+        <!-- Alerta: Exceso de Ciclos -->
+        <record id="action_alert_excess_cycles" model="ir.actions.act_window">
+            <field name="name">Exceso de Ciclos</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_garment', '=', True), ('lifecycle_state', 'in', ['warning', 'replace'])]</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_alerts_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
+        <!-- Alerta: Inactividad -->
+        <record id="action_alert_inactivity" model="ir.actions.act_window">
+            <field name="name">Prendas Inactivas</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field
+        name="domain"
+      >[('is_garment', '=', True), ('last_movement_date', '!=', False), ('last_movement_date', '&lt;', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_alerts_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
+        <!-- Alerta: Todas las Alertas -->
+        <record id="action_alerts_all" model="ir.actions.act_window">
+            <field name="name">Alertas y Excepciones</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field
+        name="domain"
+      >[('is_garment', '=', True), '|', ('lifecycle_state', 'in', ['warning', 'replace']), '&amp;', ('last_movement_date', '!=', False), ('last_movement_date', '&lt;', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_alerts_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+<t t-name="cycles.CyclesAudit">
+    <div class="o_cycles_audit o_action d-flex flex-column h-100">
+
+        <!-- ── Header ─────────────────────────────────────────────────────── -->
+        <div class="o_control_panel_main d-flex align-items-center px-4 py-3 border-bottom bg-white shadow-sm">
+            <i class="fa fa-search fa-lg me-2 text-primary" />
+            <h4 class="mb-0 fw-bold">Auditoría de Inventario RFID</h4>
+            <t t-if="state.step !== 'config' and selectedLocation">
+                <span class="ms-3 badge bg-primary fs-6">
+                    <i class="fa fa-map-marker me-1" />
+                    <t t-esc="selectedLocation.name" />
+                </span>
+            </t>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto p-4">
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 1 – Configuración
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'config'">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">1 · Configura la auditoría</h5>
+                            </div>
+                            <div class="card-body">
+
+                                <!-- Ubicación -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">
+                                        Ubicación <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group position-relative">
+                                        <span class="input-group-text">
+                                            <i class="fa fa-map-marker" />
+                                        </span>
+                                        <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Buscar ubicación…"
+                      autocomplete="off"
+                      t-att-value="state.locationQuery"
+                      t-on-input="onLocationQueryInput"
+                      t-on-focus="onLocationFocus"
+                      t-on-blur="onLocationBlur"
+                    />
+                                        <t t-if="state.selectedLocationId or state.locationQuery">
+                                            <button
+                          type="button"
+                          class="btn btn-outline-secondary"
+                          t-on-click="clearLocation"
+                          title="Limpiar"
+                        >
+                                                <i class="fa fa-times" />
+                                            </button>
+                                        </t>
+                                    </div>
+                                    <t t-if="state.locationListOpen and !state.selectedLocationId">
+                                        <ul
+                        class="list-group position-absolute shadow-sm"
+                        style="z-index:1050;max-height:240px;overflow-y:auto;min-width:320px;"
+                      >
+                                            <t t-if="filteredLocations.length === 0">
+                                                <li class="list-group-item text-muted small">
+                                                    Sin coincidencias
+                                                </li>
+                                            </t>
+                                            <t t-foreach="filteredLocations" t-as="loc" t-key="loc.id">
+                                                <li
+                              class="list-group-item list-group-item-action"
+                              style="cursor:pointer;"
+                              t-on-mousedown="() => this.selectLocation(loc)"
+                            >
+                                                    <t t-esc="loc.name" />
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </t>
+                                    <t t-if="selectedLocation">
+                                        <small class="text-success d-block mt-1">
+                                            <i class="fa fa-check me-1" />
+                                            Seleccionada: <strong><t t-esc="selectedLocation.name" /></strong>
+                                        </small>
+                                    </t>
+                                </div>
+
+                                <!-- Tipos de prenda -->
+                                <t t-if="state.garmentTypes.length">
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">
+                                            Tipos de Prenda
+                                            <span class="text-muted fw-normal small ms-1">
+                                                (vacío = todos)
+                                            </span>
+                                        </label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <t t-foreach="state.garmentTypes" t-as="gt" t-key="gt.id">
+                                                <button
+                              class="btn btn-sm"
+                              t-att-class="isGarmentTypeSelected(gt.id) ? 'btn-primary' : 'btn-outline-secondary'"
+                              t-on-click="() => this.toggleGarmentType(gt.id)"
+                            >
+                                                    <i
+                                t-att-class="isGarmentTypeSelected(gt.id) ? 'fa fa-check-square-o me-1' : 'fa fa-square-o me-1'"
+                              />
+                                                    <t t-esc="gt.name" />
+                                                </button>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+
+                                <div class="pt-2">
+                                    <button
+                      class="btn btn-primary btn-lg px-5"
+                      t-att-disabled="!canStartAudit or state.isLoading"
+                      t-on-click="startAudit"
+                    >
+                                        <t t-if="state.isLoading">
+                                            <i class="fa fa-spinner fa-spin me-2" />Cargando inventario…
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-play me-2" />Iniciar auditoría
+                                        </t>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 2 – Escaneando
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'scanning'">
+                <div class="row g-4">
+
+                    <!-- Left: scan area + counters -->
+                    <div class="col-md-5">
+                        <div class="card shadow-sm h-100">
+                            <div
+                  class="card-header text-white"
+                  style="background-color:#0d6efd"
+                >
+                                <h5 class="mb-0">
+                                    <i class="fa fa-wifi me-2" />Apunta el lector a las prendas
+                                </h5>
+                            </div>
+                            <div class="card-body d-flex flex-column gap-3 py-4">
+
+                                <!-- Counters grid -->
+                                <div class="row g-2 text-center">
+                                    <div class="col-6">
+                                        <div class="rounded p-2 bg-light border">
+                                            <div class="h3 fw-bold mb-0 text-dark">
+                                                <t t-esc="state.epcs.length" />
+                                            </div>
+                                            <small class="text-muted">Escaneadas</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="rounded p-2 bg-success text-white">
+                                            <div class="h3 fw-bold mb-0">
+                                                <t t-esc="state.foundEpcs.length" />
+                                            </div>
+                                            <small>Encontradas</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div
+                          class="rounded p-2 text-white"
+                          t-att-class="missingCount > 0 ? 'bg-danger' : 'bg-secondary'"
+                        >
+                                            <div class="h3 fw-bold mb-0">
+                                                <t t-esc="missingCount" />
+                                            </div>
+                                            <small>Faltantes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="rounded p-2 bg-light border">
+                                            <div class="h3 fw-bold mb-0 text-muted">
+                                                <t t-esc="state.ignoredEpcs.length" />
+                                            </div>
+                                            <small class="text-muted">Ignoradas</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Expected total -->
+                                <div class="text-center small text-muted">
+                                    Inventario esperado: <strong>
+                                        <t t-esc="state.expectedCount" />
+                                    </strong> prendas
+                                </div>
+
+                                <!-- Scanner textarea -->
+                                <textarea
+                    t-ref="scanInput"
+                    class="form-control text-center"
+                    style="max-width:320px;height:48px;font-family:monospace;resize:none;align-self:center;"
+                    placeholder="Apunta el lector aquí…"
+                    inputmode="none"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    t-on-input="onScannerInput"
+                    t-on-blur="() => { this.state.scanActive = false; }"
+                    t-on-focus="() => { this.state.scanActive = true; }"
+                  />
+
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button
+                      class="btn"
+                      t-att-class="state.scanActive ? 'btn-success' : 'btn-outline-success'"
+                      t-on-click="activateScanner"
+                    >
+                                        <i
+                        t-att-class="state.scanActive ? 'fa fa-circle text-success me-1' : 'fa fa-circle-o me-1'"
+                      />
+                                        <t t-esc="state.scanActive ? 'Escáner activo' : 'Activar escáner'" />
+                                    </button>
+                                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      t-on-click="clearAll"
+                    >
+                                        <i class="fa fa-trash me-1" />Borrar todo
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: EPC list with classification -->
+                    <div class="col-md-7">
+                        <div class="card shadow-sm h-100 d-flex flex-column">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">EPCs detectados</h5>
+                                <span class="badge bg-primary rounded-pill fs-6">
+                                    <t t-esc="state.epcs.length" />
+                                </span>
+                            </div>
+                            <div class="card-body overflow-auto flex-grow-1 p-0">
+                                <t t-if="state.epcs.length === 0">
+                                    <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                        <div class="text-center py-5">
+                                            <i class="fa fa-inbox fa-3x mb-3 d-block" />
+                                            Esperando escaneo…
+                                        </div>
+                                    </div>
+                                </t>
+                                <ul class="list-group list-group-flush">
+                                    <t t-foreach="state.epcs" t-as="epc" t-key="epc">
+                                        <li
+                        class="list-group-item d-flex align-items-center gap-2 py-1 px-3"
+                      >
+                                            <t t-if="state.foundEpcs.includes(epc)">
+                                                <i class="fa fa-check-circle text-success flex-shrink-0" title="Encontrada en inventario" />
+                                            </t>
+                                            <t t-else="">
+                                                <i class="fa fa-minus-circle text-muted flex-shrink-0" title="Ignorada (fuera del filtro)" />
+                                            </t>
+                                            <code
+                          class="small text-break flex-grow-1"
+                          t-att-class="state.foundEpcs.includes(epc) ? 'text-success' : 'text-muted'"
+                        >
+                                                <t t-esc="epc" />
+                                            </code>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </div>
+                            <div class="card-footer d-flex gap-2">
+                                <button class="btn btn-outline-secondary" t-on-click="reset">
+                                    <i class="fa fa-arrow-left me-1" />Volver
+                                </button>
+                                <button
+                    class="btn btn-primary flex-grow-1"
+                    t-att-disabled="state.epcs.length === 0 or state.isProcessing"
+                    t-on-click="confirmAudit"
+                  >
+                                    <t t-if="state.isProcessing">
+                                        <i class="fa fa-spinner fa-spin me-1" />Procesando…
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-check me-1" />Ver resultado (<t
+                        t-esc="state.epcs.length"
+                      /> escaneadas)
+                                    </t>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </t>
+
+            <!-- ══════════════════════════════════════════════════════════════
+                 STEP 3 – Resultado
+            ══════════════════════════════════════════════════════════════ -->
+            <t t-if="state.step === 'result'">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body py-4">
+
+                                <div class="text-center mb-4">
+                                    <i class="fa fa-clipboard-check fa-3x text-primary mb-2" />
+                                    <h3 class="fw-bold">Auditoría completada</h3>
+                                    <t t-if="selectedLocation">
+                                        <p class="text-muted mb-0">
+                                            Ubicación: <strong><t t-esc="selectedLocation.name" /></strong>
+                                        </p>
+                                    </t>
+                                </div>
+
+                                <!-- Summary counters -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-4">
+                                        <div class="rounded p-3 bg-success text-white text-center">
+                                            <div class="h2 fw-bold mb-0">
+                                                <t t-esc="state.result and state.result.found_count" />
+                                            </div>
+                                            <small>Encontradas</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div
+                          class="rounded p-3 text-white text-center"
+                          t-att-class="state.result and state.result.missing_count ? 'bg-danger' : 'bg-secondary'"
+                        >
+                                            <div class="h2 fw-bold mb-0">
+                                                <t t-esc="state.result and state.result.missing_count" />
+                                            </div>
+                                            <small>Faltantes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="rounded p-3 bg-light border text-center">
+                                            <div class="h2 fw-bold mb-0 text-muted">
+                                                <t t-esc="state.result and state.result.ignored_count" />
+                                            </div>
+                                            <small class="text-muted">Ignoradas</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Breakdown by garment type -->
+                                <t t-if="state.result and state.result.by_garment_type and state.result.by_garment_type.length">
+                                    <h6 class="fw-semibold mb-2">Detalle por tipo de prenda</h6>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-sm table-bordered mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Tipo de Prenda</th>
+                                                    <th class="text-center">Esperado</th>
+                                                    <th class="text-center text-success">Encontrado</th>
+                                                    <th class="text-center text-danger">Faltante</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="state.result.by_garment_type" t-as="row" t-key="row.name">
+                                                    <tr>
+                                                        <td><t t-esc="row.name" /></td>
+                                                        <td class="text-center"><t t-esc="row.expected" /></td>
+                                                        <td class="text-center text-success fw-semibold">
+                                                            <t t-esc="row.found" />
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <t t-if="row.missing > 0">
+                                                                <span class="badge bg-danger"><t t-esc="row.missing" /></span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span class="text-muted">0</span>
+                                                            </t>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+
+                                <!-- Missing lots -->
+                                <t t-if="state.result and state.result.missing_count > 0">
+                                    <div class="alert alert-danger">
+                                        <strong>
+                                            <i class="fa fa-exclamation-triangle me-1" />
+                                            Prendas no encontradas (<t t-esc="state.result.missing_count" />):
+                                        </strong>
+                                        <ul class="mb-0 mt-2 small">
+                                            <t t-foreach="state.result.missing_lots" t-as="lot" t-key="lot.lot_id">
+                                                <li>
+                                                    <code><t t-esc="lot.lot_name" /></code>
+                                                    <span class="text-muted ms-1">
+                                                        — <t t-esc="lot.garment_type_name or lot.product_name" />
+                                                    </span>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                        <t t-if="state.result.missing_count > state.result.missing_lots.length">
+                                            <small class="text-muted">
+                                                … y <t
+                                t-esc="state.result.missing_count - state.result.missing_lots.length"
+                              /> más
+                                            </small>
+                                        </t>
+                                    </div>
+                                </t>
+
+                                <!-- Ignored EPCs -->
+                                <t t-if="state.result and state.result.ignored_count > 0">
+                                    <div class="alert alert-secondary">
+                                        <strong>
+                                            EPCs ignorados (<t t-esc="state.result.ignored_count" />):
+                                        </strong>
+                                        <span class="text-muted small ms-1">
+                                            No pertenecen al filtro seleccionado
+                                        </span>
+                                        <ul class="mb-0 mt-2 small">
+                                            <t t-foreach="state.result.ignored_epcs" t-as="epc" t-key="epc">
+                                                <li><code><t t-esc="epc" /></code></li>
+                                            </t>
+                                        </ul>
+                                        <t t-if="state.result.ignored_count > state.result.ignored_epcs.length">
+                                            <small class="text-muted">
+                                                … y <t
+                                t-esc="state.result.ignored_count - state.result.ignored_epcs.length"
+                              /> más
+                                            </small>
+                                        </t>
+                                    </div>
+                                </t>
+
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-primary px-5" t-on-click="reset">
+                                        <i class="fa fa-refresh me-1" />Nueva Auditoría
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+        </div><!-- /p-4 -->
+    </div>
+</t>
+
+</templates>

@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_garment_type_user,cycles.garment.type.user,model_cycles_garment_type,group_cycles_user,1,0,0,0
+access_garment_type_manager,cycles.garment.type.manager,model_cycles_garment_type,group_cycles_manager,1,1,1,1
+access_movement_user,cycles.movement.user,model_cycles_movement,group_cycles_user,1,0,0,0
+access_movement_manager,cycles.movement.manager,model_cycles_movement,group_cycles_manager,1,1,1,1
+access_epc_replace_wizard_user,cycles.epc.replace.wizard.user,model_cycles_epc_replace_wizard,group_cycles_user,1,1,1,1
+access_epc_replace_wizard_manager,cycles.epc.replace.wizard.manager,model_cycles_epc_replace_wizard,group_cycles_manager,1,1,1,1
