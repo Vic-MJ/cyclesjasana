@@ -10,7 +10,9 @@ RUN sed -i '/db_host/d' /etc/odoo/odoo.conf && \
     sed -i '/db_port/d' /etc/odoo/odoo.conf && \
     sed -i '/db_user/d' /etc/odoo/odoo.conf && \
     sed -i '/db_password/d' /etc/odoo/odoo.conf && \
-    sed -i '/db_name/d' /etc/odoo/odoo.conf
+    sed -i '/db_name/d' /etc/odoo/odoo.conf && \
+    echo "db_name = cycles_db_c08t" >> /etc/odoo/odoo.conf && \
+    echo "proxy_mode = True" >> /etc/odoo/odoo.conf
 
 # Copiar los módulos personalizados de tu proyecto
 COPY ./cycles /mnt/extra-addons/
