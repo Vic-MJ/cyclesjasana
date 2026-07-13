@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="cycles_login_layout" inherit_id="web.login_layout" name="Cycles Login Layout">
+        <!-- Remove default body background class -->
+        <xpath expr="//t[@t-set='body_classname']" position="replace">
+            <t t-set="body_classname" t-value="'cycles-login-body'"/>
+        </xpath>
+        
+        <!-- Replace the entire container with our modern split-screen design -->
+        <xpath expr="//div[hasclass('container')]" position="replace">
+            <div class="cycles-login-wrapper d-flex w-100 min-vh-100 m-0 p-0">
+                
+                <!-- Left Side: Dynamic Branding (hidden on mobile) -->
+                <div class="cycles-login-brand d-none d-md-flex flex-column justify-content-center align-items-center w-50 position-relative overflow-hidden">
+                    <div class="cycles-brand-bg"></div>
+                    <div class="cycles-brand-content text-center text-white p-5">
+                        <h1 class="display-4 fw-bold mb-3">Gestión de Uniformes</h1>
+                        <p class="lead fw-light">Plataforma inteligente con tecnología RFID</p>
+                    </div>
+                </div>
+                
+                <!-- Right Side: Login Form -->
+                <div class="cycles-login-form-container w-50 d-flex flex-column justify-content-center align-items-center position-relative">
+                    <div class="w-100 px-4 px-md-5" style="max-width: 480px;">
+                        
+                        <!-- Header with Logo -->
+                        <div class="text-center mb-5">
+                            <img src="/cycles/static/img/logo_login.png" alt="Cycles Logo" class="cycles-logo mb-4"/>
+                            <h3 class="fw-bold text-dark mb-1">Bienvenido de nuevo</h3>
+                            <p class="text-muted">Ingresa tus credenciales para acceder</p>
+                        </div>
+                        
+                        <!-- The Odoo Login Form is injected here via t-out -->
+                        <div class="cycles-form-wrapper">
+                            <t t-out="0"/>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="text-center small mt-5 pt-4 text-muted border-top border-light">
+                            <t t-if="not disable_database_manager">
+                                <a class="text-decoration-none text-muted me-2 custom-hover" href="/web/database/manager">Gestionar Bases de Datos</a> |
+                            </t>
+                            <span class="ms-2">Powered by <strong class="text-primary">Jasana</strong></span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

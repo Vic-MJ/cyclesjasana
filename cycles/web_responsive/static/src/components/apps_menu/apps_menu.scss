@@ -51,6 +51,11 @@
     z-index: -100 !important;
 }
 
+// Force the navbar apps menu to be visible on mobile
+.o_navbar_apps_menu {
+    display: block !important;
+}
+
 // Iconized full screen apps menu
 .o_grid_apps_menu {
     &__button {
@@ -70,22 +75,23 @@
     }
 
     .o-app-menu-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
         width: 100%;
         gap: 0.25rem;
 
         @include media-breakpoint-up(sm) {
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
         }
     }
 }
 
 .app-menu-container {
     @include full-screen-dropdown();
+    top: $o-navbar-height !important;
     overflow: auto;
     background-clip: border-box;
-    padding: 1rem 0.5rem;
+    padding: 1rem 0.5rem 4rem 0.5rem !important; /* Extra bottom padding */
     gap: 1rem;
     background: var(--app-menu-background);
     background-size: cover;

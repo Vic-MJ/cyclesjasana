@@ -31,8 +31,12 @@ Cycles - Gestión de Uniformes con RFID
         "views/menus.xml",
         "views/rfid_scanner_views.xml",
         "views/audit_views.xml",
+        "views/login_templates.xml",
     ],
     "assets": {
+        "web.assets_frontend": [
+            "cycles/static/src/scss/login.scss",
+        ],
         "web.assets_backend": [
             "cycles/static/src/scss/rfid_scanner.scss",
             "cycles/static/src/js/rfid_scanner.js",

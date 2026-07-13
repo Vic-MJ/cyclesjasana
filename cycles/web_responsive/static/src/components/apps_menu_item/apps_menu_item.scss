@@ -18,8 +18,8 @@
 }
 
 .o-app-menu-item {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     border-radius: 4px;
     gap: 0.25rem;
     transition:
