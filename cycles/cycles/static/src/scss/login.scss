@@ -60,6 +60,7 @@
         /* Odoo form styling overrides */
         .cycles-form-wrapper {
             .oe_login_form {
+                display: block !important; /* Force visible, override Odoo's d-none */
                 margin: 0 !important;
                 padding: 0 !important;
                 border: none !important;
