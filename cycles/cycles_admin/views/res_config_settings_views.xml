@@ -39,5 +39,5 @@
         name="Ajustes Generales"
         parent="menu_cycles_admin_configuracion"
         action="action_cycles_admin_config_settings"
-        sequence="5"/>
+        sequence="100"/>
 </odoo>
