@@ -1,6 +1,5 @@
 from odoo import api, fields, models
-
-
+from odoo.exceptions import ValidationError
 class StockLot(models.Model):
     _inherit = "stock.lot"
 
@@ -74,6 +73,12 @@ class StockLot(models.Model):
     def _compute_movement_count(self):
         for lot in self:
             lot.movement_count = len(lot.movement_ids)
+
+    @api.constrains("employee_id", "lifecycle_state")
+    def _check_retired_assignment(self):
+        for lot in self:
+            if lot.employee_id and lot.lifecycle_state == "retired":
+                raise ValidationError("Este EPC se encuentra fuera de operaciones (Retirada) y no puede ser asignado a un empleado.")
 
     def action_view_movements(self):
         self.ensure_one()
