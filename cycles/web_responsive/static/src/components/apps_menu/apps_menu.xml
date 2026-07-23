@@ -64,8 +64,8 @@
         </xpath>
     </t>
 
-    <!-- Burger Menu -->
+    <!-- Burger Menu Restored -->
     <t t-inherit="web.BurgerMenu" t-inherit-mode="extension">
-        <!-- Disabled since we want the enterprise grid menu on mobile instead of the sidebar -->
+        <!-- Restored standard mobile BurgerMenu so sub-menus are accessible -->
     </t>
 </templates>

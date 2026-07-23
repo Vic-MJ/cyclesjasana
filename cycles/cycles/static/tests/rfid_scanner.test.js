@@ -458,18 +458,27 @@ describe("Cycles RFID Scanner", () => {
                 { id: 8, name: "Ana Scanner" },
                 { id: 12, name: "Bruno RFID" },
             ]);
-            expect(".o_cycles_employee_select option").toHaveCount(3);
-            expect(".o_cycles_employee_select option:eq(1)").toHaveText(
-                "Ana Scanner"
-            );
-
-            const employeeSelect = queryOne(".o_cycles_employee_select");
-            employeeSelect.value = "12";
-            employeeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+            
+            // Check that the search input is rendered instead of a select
+            expect("input[placeholder='Buscar por nombre o PIN…']").toHaveCount(1);
+            
+            // Type in the search box
+            const searchInput = queryOne("input[placeholder='Buscar por nombre o PIN…']");
+            searchInput.value = "Bruno";
+            searchInput.dispatchEvent(new Event("input", { bubbles: true }));
             await animationFrame();
 
-            expect(component.state.selectedEmployeeId).toBe("12");
-            expect(".o_cycles_start_scan_btn").not.toBeDisabled();
+            // The dropdown should appear
+            expect(".list-group-item").toHaveCount(1);
+            expect(".list-group-item").toHaveText("Bruno RFID");
+
+            // Click the item
+            await contains(".list-group-item").click();
+            await animationFrame();
+
+            expect(component.state.selectedEmployeeId).toBe(12);
+            expect(component.state.employeeQuery).toBe("Bruno RFID");
+            expect(".btn-outline-secondary[title='Limpiar']").toHaveCount(1);
         }
     );
 });

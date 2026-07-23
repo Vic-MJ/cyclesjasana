@@ -8,6 +8,15 @@
         <menuitem id="menu_cycles_operations" name="Operaciones" parent="menu_cycles_root" sequence="10" />
 
         <menuitem
+      id="menu_rfid_scanner"
+      name="Escáner RFID"
+      parent="menu_cycles_operations"
+      action="action_rfid_scanner"
+      sequence="50"
+      groups="cycles.group_cycles_user"
+    />
+
+        <menuitem
       id="menu_garments"
       name="Prendas"
       parent="menu_cycles_operations"
@@ -32,7 +41,7 @@
     />
 
         <!-- Menú Reportes -->
-        <menuitem id="menu_cycles_reports" name="Reportes" parent="menu_cycles_root" sequence="20" />
+        <menuitem id="menu_cycles_reports" name="Reportes" parent="menu_cycles_root" action="action_report_inventory_estado" sequence="20" />
 
         <menuitem
       id="menu_report_inventory"

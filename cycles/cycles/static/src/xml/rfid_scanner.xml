@@ -7,7 +7,7 @@
         <!-- ── Header ─────────────────────────────────────────────────────── -->
         <div class="scanner-header d-flex align-items-center px-3 py-2">
             <t t-if="!state.selectedOp or state.step === 'config'">
-                <i class="fa fa-wifi fa-lg me-3 text-primary flex-shrink-0" />
+                <i class="fa fa-wifi fa-lg me-3 text-primary flex-shrink-0 d-none d-md-inline" />
                 <h5 class="mb-0 header-title text-truncate">Escáner RFID</h5>
             </t>
             <t t-else="">
@@ -136,9 +136,36 @@
                                         </t>
                                     </div>
                                 </t>
-
                             </div>
                         </div>
+
+                        <!-- ── NUEVO BLOQUE: ACCESOS DIRECTOS (REPORTES) ── -->
+                        <t t-if="!state.selectedOp">
+                            <div class="glass-card mb-4">
+                                <div class="card-header bg-white border-0 py-3">
+                                    <h5 class="mb-0 fw-bold text-muted"><i class="fa fa-bars me-2"/>Accesos Directos (Menú)</h5>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="d-flex flex-column gap-2">
+                                        <button class="btn btn-light text-start border shadow-sm p-3 rounded" t-on-click="() => this.actionService.doAction('cycles.action_garments')">
+                                            <i class="fa fa-tags me-3 text-primary"/> <span class="fw-bold">Todas las Prendas</span>
+                                        </button>
+                                        <button class="btn btn-light text-start border shadow-sm p-3 rounded" t-on-click="() => this.actionService.doAction('cycles.action_epc_replace_wizard')">
+                                            <i class="fa fa-exchange me-3 text-warning"/> <span class="fw-bold">Reemplazar EPC Dañado</span>
+                                        </button>
+                                        <button class="btn btn-light text-start border shadow-sm p-3 rounded" t-on-click="() => this.actionService.doAction('cycles.action_report_inventory_estado')">
+                                            <i class="fa fa-bar-chart me-3 text-info"/> <span class="fw-bold">Reporte: Inventario por Estado</span>
+                                        </button>
+                                        <button class="btn btn-light text-start border shadow-sm p-3 rounded" t-on-click="() => this.actionService.doAction('cycles.action_report_dias_asignados')">
+                                            <i class="fa fa-calendar me-3 text-success"/> <span class="fw-bold">Reporte: Días Asignados</span>
+                                        </button>
+                                        <button class="btn btn-light text-start border shadow-sm p-3 rounded" t-on-click="() => this.actionService.doAction('cycles.action_alerts_all')">
+                                            <i class="fa fa-bell me-3 text-danger"/> <span class="fw-bold">Alertas y Excepciones</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
 
                     </div>
                 </div>

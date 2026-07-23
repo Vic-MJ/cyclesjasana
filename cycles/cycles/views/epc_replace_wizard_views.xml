@@ -29,6 +29,6 @@
         <field name="name">Reemplazar EPC Dañado</field>
         <field name="res_model">cycles.epc.replace.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
     </record>
 </odoo>

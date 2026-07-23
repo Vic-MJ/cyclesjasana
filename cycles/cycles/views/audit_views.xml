@@ -11,7 +11,7 @@
       name="Auditoría"
       parent="menu_cycles_operations"
       action="action_audit_scanner"
-      sequence="10"
+      sequence="60"
       groups="cycles.group_cycles_user"
     />
     </data>
