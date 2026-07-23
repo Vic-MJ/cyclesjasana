@@ -43,6 +43,9 @@ class StockLot(models.Model):
     movement_count = fields.Integer(
         string="Movimientos", compute="_compute_movement_count"
     )
+    days_assigned = fields.Integer(
+        string="Días Asignados", compute="_compute_days_assigned"
+    )
 
     @api.depends("product_id", "product_id.product_tmpl_id.garment_type_id")
     def _compute_is_garment(self):
@@ -73,6 +76,15 @@ class StockLot(models.Model):
     def _compute_movement_count(self):
         for lot in self:
             lot.movement_count = len(lot.movement_ids)
+
+    @api.depends("assignment_date")
+    def _compute_days_assigned(self):
+        today = fields.Date.today()
+        for lot in self:
+            if lot.assignment_date:
+                lot.days_assigned = (today - lot.assignment_date).days
+            else:
+                lot.days_assigned = 0
 
     @api.constrains("employee_id", "lifecycle_state")
     def _check_retired_assignment(self):

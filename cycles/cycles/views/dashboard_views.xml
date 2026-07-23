@@ -111,6 +111,39 @@
             <field name="search_view_id" ref="view_garment_search" />
         </record>
 
+        <!-- Reporte 3.5: Días Asignados por Empleado -->
+        <record id="view_garment_days_assigned_list" model="ir.ui.view">
+            <field name="name">cycles.garment.days.assigned.list</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <list string="Días Asignados por Empleado" default_order="assignment_date desc">
+                    <field name="employee_id" />
+                    <field name="name" string="EPC / Serial" />
+                    <field name="garment_type_id" />
+                    <field name="assignment_date" />
+                    <field name="days_assigned" />
+                    <field name="location_id" string="Ubicación Actual" />
+                </list>
+            </field>
+        </record>
+
+        <record id="action_report_dias_asignados" model="ir.actions.act_window">
+            <field name="name">Días Asignados a Empleado</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('is_garment', '=', True), ('employee_id', '!=', False)]</field>
+            <field name="context">{'search_default_group_employee': 1}</field>
+            <field
+        name="view_ids"
+        eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'list', 'view_id': ref('view_garment_days_assigned_list')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('stock.view_production_lot_form')}),
+            ]"
+      />
+            <field name="search_view_id" ref="view_garment_search" />
+        </record>
+
         <!-- Reporte 4: Alertas y Excepciones -->
         <record id="view_garment_alerts_list" model="ir.ui.view">
             <field name="name">cycles.garment.alerts.list</field>

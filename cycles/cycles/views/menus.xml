@@ -59,6 +59,14 @@
     />
 
         <menuitem
+      id="menu_report_dias_asignados"
+      name="Días Asignados a Empleado"
+      parent="menu_cycles_reports"
+      action="action_report_dias_asignados"
+      sequence="35"
+    />
+
+        <menuitem
       id="menu_report_alerts"
       name="Alertas y Excepciones"
       parent="menu_cycles_reports"

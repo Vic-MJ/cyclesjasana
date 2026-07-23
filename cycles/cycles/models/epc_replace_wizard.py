@@ -57,5 +57,6 @@ class EpcReplaceWizard(models.TransientModel):
                 "message": self.env._("EPC reemplazado correctamente."),
                 "sticky": False,
                 "type": "success",
+                "next": {"type": "ir.actions.act_window_close"},
             },
         }

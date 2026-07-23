@@ -1,69 +1,79 @@
-import psycopg2
+import logging
 
-print("=== INICIANDO DESTRUCCIÓN TOTAL EN CASCADA ===")
+_logger = logging.getLogger(__name__)
 
-companies_to_delete = ['PRUEBAS JSN', 'HG', 'My Company']
-companies = env['res.company'].with_context(active_test=False).search(['|', '|', ('name', 'ilike', 'PRUEBAS JSN'), ('name', 'ilike', 'HG'), ('name', 'ilike', 'My Company')])
-
-if not companies:
-    print("No se encontraron empresas con esos nombres.")
-else:
-    company_ids = tuple(companies.ids)
-    print(f"Empresas a destruir (IDs): {company_ids}")
-
-    # Encontrar TODAS las tablas que hacen referencia a res_company
-    env.cr.execute("""
-        SELECT tc.table_name, kcu.column_name
-        FROM information_schema.table_constraints AS tc
-        JOIN information_schema.key_column_usage AS kcu
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-        JOIN information_schema.constraint_column_usage AS ccu
-          ON ccu.constraint_name = tc.constraint_name
-          AND ccu.table_schema = tc.table_schema
-        WHERE tc.constraint_type = 'FOREIGN KEY' AND ccu.table_name='res_company';
-    """)
+def clean_database(env):
+    _logger.info("INICIANDO LIMPIEZA DE BASE DE DATOS")
     
-    fk_references = env.cr.fetchall()
-    
-    # Algunas tablas son criticas y no queremos borrarlas enteras si no que limpiar la referencia (SET NULL)
-    # pero el usuario pidió destruir los registros, así que lo haremos con cuidado.
-    # Repetiremos el proceso hasta que pase limpio (por si hay dependencias de dependencias)
-    
-    max_attempts = 5
-    for attempt in range(max_attempts):
+    # 1. Renombrar Compañía y Usuario Admin
+    main_company = env['res.company'].search([('name', '=', 'ADMINISTRACIÓN CYCLES')], limit=1)
+    if not main_company:
+        main_company = env['res.company'].search([], limit=1)
+        main_company.write({'name': 'ADMINISTRACIÓN CYCLES'})
+    _logger.info("Empresa principal asegurada: ADMINISTRACIÓN CYCLES")
+
+    admin_user = env['res.users'].search([('login', '=', 'admin@cycles.com')], limit=1)
+    if not admin_user:
+        admin_user = env['res.users'].browse(2)
+        admin_user.write({'login': 'admin@cycles.com', 'email': 'admin@cycles.com'})
+    _logger.info("Usuario principal asegurado: admin@cycles.com")
+
+    # Reasignar compañía del admin
+    admin_user.write({
+        'company_id': main_company.id,
+        'company_ids': [(6, 0, [main_company.id])]
+    })
+
+    # Archivar otros usuarios excepto portal, public, odoobot y el admin
+    protected_users = [admin_user.id]
+    protected_logins = ['public', 'portaltemplate', 'default', 'odoobot']
+    other_users = env['res.users'].search([('id', 'not in', protected_users), ('login', 'not in', protected_logins)])
+    for u in other_users:
         try:
-            with env.cr.savepoint():
-                env.cr.execute("DELETE FROM res_company WHERE id IN %s", (company_ids,))
-            print("DESTRUCCIÓN DE EMPRESAS COMPLETADA CON ÉXITO.")
-            break
-        except psycopg2.errors.ForeignKeyViolation as e:
-            error_msg = str(e)
-            print(f"Dependencia encontrada, limpiando... (Intento {attempt+1}/{max_attempts})")
-            
-            # Borrar todos los registros en tablas que referencian a estas empresas
-            for table_name, column_name in fk_references:
-                # Ignoramos res_users porque ya movimos a los usuarios y no queremos borrarlos, 
-                # solo le hacemos SET NULL o los borramos si están vinculados 100% a la empresa
-                # Obtenemos la empresa válida (si existe) para redirigir
-                valid_company_id = env['res.company'].with_context(active_test=False).search([('id', 'not in', company_ids)], limit=1).id
-                if not valid_company_id:
-                    valid_company_id = "NULL" # Fallback extremo
-                
-                if table_name == 'res_users' or table_name == 'res_company':
-                    try:
-                        with env.cr.savepoint():
-                            env.cr.execute(f"UPDATE {table_name} SET {column_name} = {valid_company_id} WHERE {column_name} IN %s", (company_ids,))
-                    except Exception: pass
-                else:
-                    try:
-                        with env.cr.savepoint():
-                            env.cr.execute(f"DELETE FROM {table_name} WHERE {column_name} IN %s", (company_ids,))
-                    except Exception as inner_e:
-                        pass # Puede fallar si hay cascadas secundarias, lo resolveremos iterando
-        except Exception as e:
-            print(f"Error inesperado: {e}")
-            break
+            u.write({'active': False})
+        except Exception:
+            pass
+    _logger.info("Otros usuarios archivados")
 
-env.cr.commit()
-print("=== PROCESO TERMINADO ===")
+    # Archivar otras compañías
+    other_companies = env['res.company'].search([('id', '!=', main_company.id)])
+    for c in other_companies:
+        try:
+            c.write({'active': False})
+        except Exception:
+            pass
+    _logger.info("Otras empresas archivadas")
+
+
+    # 2. Borrar Movimientos RFID (Cycles)
+    movements = env['cycles.movement'].search([])
+    movements.unlink()
+    _logger.info("Movimientos de Cycles eliminados")
+
+    # 3. Borrar Operaciones de Stock
+    # To delete stock moves/pickings, we must bypass the state checks
+    env.cr.execute("DELETE FROM stock_move_line")
+    env.cr.execute("DELETE FROM stock_move")
+    env.cr.execute("DELETE FROM stock_picking")
+    env.cr.execute("DELETE FROM stock_quant")
+    _logger.info("Operaciones de inventario eliminadas por SQL")
+
+    # 4. Borrar Lotes (EPCs)
+    env.cr.execute("DELETE FROM stock_lot")
+    _logger.info("Lotes (EPCs) eliminados por SQL")
+
+    # 5. Borrar Empleados
+    env.cr.execute("DELETE FROM hr_employee")
+    _logger.info("Empleados eliminados por SQL")
+
+    # 6. Borrar Tipos de Prenda y Productos
+    env.cr.execute("DELETE FROM cycles_garment_type")
+    
+    # We must delete product_product and product_template by SQL to avoid constraints
+    env.cr.execute("DELETE FROM product_product")
+    env.cr.execute("DELETE FROM product_template")
+
+    env.cr.commit()
+    _logger.info("LIMPIEZA FINALIZADA CON ÉXITO")
+
+clean_database(env)
